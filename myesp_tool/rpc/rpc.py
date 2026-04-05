@@ -6,7 +6,8 @@ from typing import Union, List
 import serial
 
 from myesp_tool.rpc import utils
-from myesp_tool.rpc.constants import RPC_MSG_MAGIC, RPC_MSG_VERSION, RPCMsgType
+from myesp_tool.rpc.constants import RPC_MSG_MAGIC, RPC_MSG_VERSION, RPCMsgType, CONFIG_NS_MAX_SIZE, \
+    CONFIG_KEY_MAX_SIZE, ConfigValType
 from myesp_tool.rpc.crc import esp_crc16_le
 from myesp_tool.rpc.exceptions import RPCInvalidPktError, RPCIncompletePktError
 from myesp_tool.rpc.protobuffer import ProtoBuffer, PB_LITTLEENDIAN
@@ -208,3 +209,107 @@ def build_upgrade_req_msg(addr_list: List[PeerAddress], sha256: bytes, firmware_
         pb.write_bytes(addr.peer_addr)
 
     return RPCMessage(mtype=RPCMsgType.CMD_DEVICE_UPGRADE_REQ, payload=pb.getvalue())
+
+
+def build_light_ctl_msg(addr_list: List[PeerAddress], pos_x: int, pos_y: int, pos_z: int,
+                        mode: int = 0, brightness: int = 100) -> RPCMessage:
+    """
+    灯光控制请求
+    data:
+      [0]      addrs_num   1B    目标设备数 N（0=广播）
+      [1]      addr_list   6*N   目标 MAC 地址列表
+      [1+6N]   ctl         5B    灯光控制参数
+        [+0]   pos.x       1B
+        [+1]   pos.y       1B
+        [+2]   pos.z       1B
+        [+3]   mode        1B    灯光模式 (0=基础, 1=呼吸, 2=闪烁)
+        [+4]   brightness  1B    亮度 (0~100)
+    """
+    pb = ProtoBuffer()
+    pb.write_uint8(len(addr_list))
+    for addr in addr_list:
+        pb.write_bytes(addr.peer_addr)
+    pb.write_uint8(pos_x)
+    pb.write_uint8(pos_y)
+    pb.write_uint8(pos_z)
+    pb.write_uint8(mode)
+    pb.write_uint8(brightness)
+    return RPCMessage(mtype=RPCMsgType.CMD_DEVICE_LIGHT_CTL_REQ, payload=pb.getvalue())
+
+def build_channel_set_msg(addr_list: List[PeerAddress], channel: int) -> RPCMessage:
+    """
+    频道切换请求
+    data:
+      [0]      channel   1B    通道
+    """
+    pb = ProtoBuffer()
+    pb.write_uint8(len(addr_list))
+    for addr in addr_list:
+        pb.write_bytes(addr.peer_addr)
+    pb.write_uint8(channel)
+    return RPCMessage(mtype=RPCMsgType.CMD_DEVICE_SET_CHANNEL_REQ, payload=pb.getvalue())
+
+def build_device_reboot_msg(addr_list: List[PeerAddress], delay: int) -> RPCMessage:
+    """
+    :param addr_list:
+    :param delay: 指定延时 <delay> ms 后重启
+    :return:
+    """
+    pb = ProtoBuffer()
+    pb.write_uint8(len(addr_list))
+    for addr in addr_list:
+        pb.write_bytes(addr.peer_addr)
+    pb.write_uint16(delay)
+    return RPCMessage(mtype=RPCMsgType.CMD_DEVICE_REBOOT_REQ, payload=pb.getvalue())
+
+def build_config_get_msg(addr_list: List[PeerAddress], key) -> RPCMessage:
+    """
+    获取设备配置
+
+    :param addr_list:
+    :param key: 配置项 key
+    :return:
+    """
+    pb = ProtoBuffer()
+    pb.write_uint8(len(addr_list))
+    for addr in addr_list:
+        pb.write_bytes(addr.peer_addr)
+    pb.write_fix_string("app", CONFIG_NS_MAX_SIZE)
+    pb.write_fix_string(key, CONFIG_KEY_MAX_SIZE)
+    pb.write_uint8(ConfigValType.TYPE_ANY)
+    return RPCMessage(mtype=RPCMsgType.CMD_DEVICE_CONFIG_GET_REQ, payload=pb.getvalue())
+
+def build_config_set_msg(addr_list: List[PeerAddress], key, vtype, value) -> RPCMessage:
+    """
+
+    :param addr_list:
+    :param key: 配置项 key
+    :param vtype: 配置项值类型
+    :param value: 值
+    :return:
+    """
+    pb = ProtoBuffer()
+    pb.write_uint8(len(addr_list))
+    for addr in addr_list:
+        pb.write_bytes(addr.peer_addr)
+    pb.write_fix_string("app", CONFIG_NS_MAX_SIZE)
+    pb.write_fix_string(key, CONFIG_KEY_MAX_SIZE)
+    pb.write_uint8(vtype)
+    if vtype == ConfigValType.TYPE_I8:
+        pb.write_int8(value)
+    elif vtype == ConfigValType.TYPE_U8:
+        pb.write_uint8(value)
+    if vtype == ConfigValType.TYPE_I16:
+        pb.write_int16(value)
+    elif vtype == ConfigValType.TYPE_U16:
+        pb.write_uint16(value)
+    if vtype == ConfigValType.TYPE_I32:
+        pb.write_int32(value)
+    elif vtype == ConfigValType.TYPE_U32:
+        pb.write_uint32(value)
+    if vtype == ConfigValType.TYPE_STR:
+        data = value.encode("utf-8")
+        pb.write_bytes(data, len(data))
+    elif vtype == ConfigValType.TYPE_U32:
+        pb.write_bytes(value, len(value))
+    return RPCMessage(mtype=RPCMsgType.CMD_DEVICE_CONFIG_SET_REQ, payload=pb.getvalue())

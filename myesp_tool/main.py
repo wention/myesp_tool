@@ -1,3 +1,4 @@
+import logging
 import sys
 
 from PyQt5.QtWidgets import QApplication
@@ -12,4 +13,6 @@ def main():
     sys.exit(app.exec_())
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
     main()

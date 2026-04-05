@@ -98,8 +98,8 @@ class ProtoBuffer(BytesIO):
         self.pack(f"{bo}Q", value)
 
     def read_fix_string(self, length, encoding='utf8'):
-        buf = self.unpack(f"!{length}s")
-        return ctypes.string_at(buf, len).decode(encoding)
+        buf = self.unpack(f"!{length}s")[0]
+        return ctypes.string_at(buf, length).decode(encoding)
 
     def write_fix_string(self, value, length, encoding='utf8'):
         """padding with zeros"""

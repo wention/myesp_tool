@@ -1,3 +1,4 @@
+import ctypes
 import logging
 import argparse
 import enum
@@ -51,10 +52,14 @@ def test_ota(rpc: GatewaySerialRPC):
     pass
 
 def main():
-    rpc = GatewaySerialRPC("/dev/ttyUSB0")
+    # rpc = GatewaySerialRPC("/dev/ttyUSB0")
 
-    test_probe(rpc)
+    # test_probe(rpc)
     # test_ota(rpc)
+
+    data = b"app\x00\x00\x00\x00\x00"
+    a = ctypes.string_at(data).decode("utf-8")
+    LOG.info("a=%s", a)
     pass
 
 

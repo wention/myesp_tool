@@ -32,6 +32,8 @@ def hexdump(data, bytes_per_line=16):
         # 每 8 个字节加一个空格分隔
         for i in range(0, len(hex_bytes), 2):
             line.append(" ".join(hex_bytes[i:i+2]))
+            if i == 6:
+                line.append("")
 
         # 添加分隔符
         line.append("  |")
