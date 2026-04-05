@@ -1,0 +1,17 @@
+import enum
+
+RPC_MSG_MAGIC = 0x1ff2
+RPC_MSG_VERSION = 0x0100
+
+
+class RPCMsgType(enum.IntEnum):
+    CMD_SCAN_REQ = 0
+    CMD_SCAN_REP = 1
+
+    # 设备升级
+    CMD_DEVICE_UPGRADE_REQ = 12
+    CMD_DEVICE_UPGRADE_DATA_REQ = 13
+    CMD_DEVICE_UPGRADE_DATA_REP = 14
+    CMD_DEVICE_UPGRADE_REP = 15
+
+    CMD_ERROR = 19
