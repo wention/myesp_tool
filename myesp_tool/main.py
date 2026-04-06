@@ -8,6 +8,8 @@ from myesp_tool.ui.mainwindow import MainWindow
 
 def main():
     app = QApplication(sys.argv)
+    app.setOrganizationName("WETA")
+    app.setApplicationName("MyESPTool")
     w = MainWindow()
     w.show()
     sys.exit(app.exec_())

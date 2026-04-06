@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>WETA ESP NOW 维护工具 V1.0</string>
+   <string>ESP32 车库灯参数设置工具</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -73,7 +73,7 @@
       </widget>
       <widget class="QTabWidget" name="tabWidget">
        <property name="currentIndex">
-        <number>0</number>
+        <number>1</number>
        </property>
        <widget class="QWidget" name="tab_ctl">
         <attribute name="title">
@@ -320,21 +320,21 @@
              <item>
               <widget class="QLineEdit" name="edit_pos_x">
                <property name="placeholderText">
-                <string>X</string>
+                <string>G</string>
                </property>
               </widget>
              </item>
              <item>
               <widget class="QLineEdit" name="edit_pos_y">
                <property name="placeholderText">
-                <string>Y</string>
+                <string>X</string>
                </property>
               </widget>
              </item>
              <item>
               <widget class="QLineEdit" name="edit_pos_z">
                <property name="placeholderText">
-                <string>Z</string>
+                <string>Y</string>
                </property>
               </widget>
              </item>
@@ -365,6 +365,50 @@
             <widget class="QSpinBox" name="edit_light_brightness_low">
              <property name="maximum">
               <number>100</number>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="0">
+            <widget class="QLabel" name="label_6">
+             <property name="text">
+              <string>雷达联动模式</string>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="0">
+            <widget class="QLabel" name="label_7">
+             <property name="text">
+              <string>雷达联动数量</string>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="1">
+            <widget class="QSpinBox" name="edit_radar_link_range">
+             <property name="minimum">
+              <number>-128</number>
+             </property>
+             <property name="maximum">
+              <number>128</number>
+             </property>
+             <property name="value">
+              <number>0</number>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="1">
+            <widget class="QComboBox" name="edit_radar_link_mode"/>
+           </item>
+           <item row="3" column="0">
+            <widget class="QLabel" name="label_8">
+             <property name="text">
+              <string>延时暗灯(ms)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="1">
+            <widget class="QSpinBox" name="edit_off_delay">
+             <property name="maximum">
+              <number>65535</number>
              </property>
             </widget>
            </item>

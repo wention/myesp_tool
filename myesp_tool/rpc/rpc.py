@@ -132,9 +132,16 @@ class RPCMessage(object):
 
 
 class GatewaySerialRPC(object):
-    def __init__(self, port):
+    def __init__(self, port, baudrate=115200, bytesize=serial.EIGHTBITS,
+                 parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE, timeout=10):
         self.port = port
-        self.serial = serial.Serial(port, 115200, bytesize=8, parity='N', stopbits=1, timeout=10)
+        self.serial = serial.Serial()
+        self.serial.port = port
+        self.serial.baudrate = baudrate
+        self.serial.bytesize = bytesize
+        self.serial.parity = parity
+        self.serial.stopbits = stopbits
+        self.serial.timeout = timeout
         self.is_connected = False
 
     def write(self, data):

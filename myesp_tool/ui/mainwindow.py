@@ -4,6 +4,8 @@ from PyQt5.QtWidgets import QMainWindow, QFileDialog, QAbstractItemView
 from .mainwindow_ui import Ui_MainWindow
 from .devicemodel import DeviceTableModel
 from .workers import ScanWorker, OTAWorker
+from .appsettings import get_serial_config
+from .settingsdialog import SettingsDialog
 from ..rpc.protobuffer import ProtoBuffer
 from ..rpc.rpc import GatewaySerialRPC, RPCMessage, PeerAddress, build_light_ctl_msg, build_channel_set_msg, \
     build_config_get_msg, build_config_set_msg, build_device_reboot_msg
@@ -47,14 +49,27 @@ DeviceTypeOptions = [
     ("网关", 2),
 ]
 
+RadarLinkModeOptions = [
+    ("X轴联动", 0),
+    ("Y轴联动", 1),
+    ("XY轴联动", 2),
+    ("信号联动", 3),
+]
+
 
 class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setupUi(self)
 
-        self._port = "/dev/ttyUSB1"
+        self._serial_config = get_serial_config()
         self.gateway_rpc = None
+
+        # 菜单
+        menu_file = self.menubar.addMenu("文件")
+        action_settings = menu_file.addAction("设置")
+        action_settings.setShortcut("Ctrl+,")
+        action_settings.triggered.connect(self._on_settings)
 
         for k, v in ChannelOptions:
             self.edit_channel.addItem(k, v)
@@ -67,6 +82,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         for k,v in TargetOptions:
             self.edit_target_select.addItem(k, v)
+
+        for k,v in RadarLinkModeOptions:
+            self.edit_radar_link_mode.addItem(k, v)
 
         # 设备列表模型
         self.device_model = DeviceTableModel(self)
@@ -83,7 +101,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def _ensure_rpc(self):
         """懒初始化串口连接。"""
         if self.gateway_rpc is None:
-            self.gateway_rpc = GatewaySerialRPC(self._port)
+            cfg = self._serial_config
+            self.gateway_rpc = GatewaySerialRPC(
+                port=cfg["port"],
+                baudrate=cfg["baudrate"],
+                bytesize=cfg["bytesize"],
+                parity=cfg["parity"],
+                stopbits=cfg["stopbits"],
+                timeout=cfg["timeout"],
+            )
         return self.gateway_rpc
 
     @Slot()
@@ -342,17 +368,39 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         _, _, _, val = parse_kv(msg, "")
         self.edit_pos_z.setText(str(val))
 
-        msg = build_config_get_msg(addrs, "light_brightness_high")
+        msg = build_config_get_msg(addrs, "led_on_duty")
         self.gateway_rpc.write_message(msg)
         msg = self.gateway_rpc.read_message()
         _, _, _, val = parse_kv(msg, 100)
         self.edit_light_brightness_high.setValue(val)
 
-        msg = build_config_get_msg(addrs, "light_brightness_low")
+        msg = build_config_get_msg(addrs, "led_off_duty")
         self.gateway_rpc.write_message(msg)
         msg = self.gateway_rpc.read_message()
         _, _, _, val = parse_kv(msg, 10)
         self.edit_light_brightness_low.setValue(val)
+
+        msg = build_config_get_msg(addrs, "led_off_delay")
+        self.gateway_rpc.write_message(msg)
+        msg = self.gateway_rpc.read_message()
+        _, _, _, val = parse_kv(msg, 0)
+        self.edit_light_brightness_low.setValue(val)
+
+
+        msg = build_config_get_msg(addrs, "radar_lk_mode")
+        self.gateway_rpc.write_message(msg)
+        msg = self.gateway_rpc.read_message()
+        _, _, _, val = parse_kv(msg, 3)
+        idx = self.edit_radar_link_mode.findData(val)
+        if idx != -1:
+            self.edit_radar_link_mode.setCurrentIndex(idx)
+
+        msg = build_config_get_msg(addrs, "radar_lk_range")
+        self.gateway_rpc.write_message(msg)
+        msg = self.gateway_rpc.read_message()
+        _, _, _, val = parse_kv(msg, -65)
+        self.edit_radar_link_range.setValue(val)
+
 
         self.statusbar.showMessage(f"读取配置完成")
         pass
@@ -375,6 +423,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         pos_z = int(self.edit_pos_z.text())
         light_brightness_high = self.edit_light_brightness_high.value()
         light_brightness_low = self.edit_light_brightness_low.value()
+        off_delay = self.edit_off_delay.value()
+        radar_link_mode = self.edit_radar_link_mode.currentData()
+        radar_link_range = self.edit_radar_link_range.value()
 
         self.updateStatusMessage("写入配置 pos_x")
         msg = build_config_set_msg(addrs, "pos_x", ConfigValType.TYPE_U8, pos_x)
@@ -391,13 +442,29 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.gateway_rpc.write_message(msg)
         msg = self.gateway_rpc.read_message()
 
-        self.updateStatusMessage("写入配置 light_brightness_high")
-        msg = build_config_set_msg(addrs, "light_brightness_high", ConfigValType.TYPE_U8, light_brightness_high)
+        self.updateStatusMessage("写入配置 led_on_duty")
+        msg = build_config_set_msg(addrs, "led_on_duty", ConfigValType.TYPE_U8, light_brightness_high)
         self.gateway_rpc.write_message(msg)
         msg = self.gateway_rpc.read_message()
 
-        self.updateStatusMessage("写入配置 light_brightness_low")
-        msg = build_config_set_msg(addrs, "light_brightness_low", ConfigValType.TYPE_U8, light_brightness_low)
+        self.updateStatusMessage("写入配置 led_off_duty")
+        msg = build_config_set_msg(addrs, "led_off_duty", ConfigValType.TYPE_U8, light_brightness_low)
+        self.gateway_rpc.write_message(msg)
+        msg = self.gateway_rpc.read_message()
+
+
+        self.updateStatusMessage("写入配置 led_off_delay")
+        msg = build_config_set_msg(addrs, "led_off_delay", ConfigValType.TYPE_U16, off_delay)
+        self.gateway_rpc.write_message(msg)
+        msg = self.gateway_rpc.read_message()
+
+        self.updateStatusMessage("写入配置 radar_lk_mode")
+        msg = build_config_set_msg(addrs, "radar_lk_mode", ConfigValType.TYPE_U8, radar_link_mode)
+        self.gateway_rpc.write_message(msg)
+        msg = self.gateway_rpc.read_message()
+
+        self.updateStatusMessage("写入配置 radar_lk_range")
+        msg = build_config_set_msg(addrs, "radar_lk_range", ConfigValType.TYPE_I8, radar_link_range)
         self.gateway_rpc.write_message(msg)
         msg = self.gateway_rpc.read_message()
 
@@ -448,3 +515,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         filename, _ = QFileDialog.getOpenFileName(self, "选择固件文件")
         if filename:
             self.edit_upgrade_rom.setText(filename)
+
+    @Slot()
+    def _on_settings(self):
+        dlg = SettingsDialog(self)
+        if dlg.exec_() == SettingsDialog.Accepted:
+            if self.gateway_rpc is not None:
+                if self.gateway_rpc.serial.is_open:
+                    self.gateway_rpc.serial.close()
+                self.gateway_rpc = None
+            self._serial_config = get_serial_config()
+            self.statusbar.showMessage(f"设置已更新，串口: {self._serial_config['port']}")
