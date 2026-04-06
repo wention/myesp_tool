@@ -1,4 +1,5 @@
 import logging
+import time
 
 from PyQt5.QtCore import QThread, pyqtSignal as Signal
 
@@ -51,6 +52,7 @@ class ScanWorker(QThread):
 
 class OTAWorker(QThread):
     progress_updated = Signal(int)
+    progress_detail = Signal(int, str, str)
     ota_finished = Signal(dict)
     ota_error = Signal(str)
 
@@ -67,6 +69,10 @@ class OTAWorker(QThread):
             msg = build_upgrade_req_msg(self.peer_addrs, sha256sum[:16], len(rom_data))
             self.rpc.write_message(msg)
 
+            start_time = None
+            transferred = 0
+            total = len(rom_data)
+
             while True:
                 msg = self.rpc.read_message()
                 if msg.mtype == RPCMsgType.CMD_DEVICE_UPGRADE_DATA_REQ:
@@ -74,13 +80,23 @@ class OTAWorker(QThread):
                     offset = pb.read_uint32()
                     size = pb.read_uint32()
                     chunk = rom_data[offset:offset + size]
+
+                    LOG.info("CMD_DEVICE_UPGRADE_DATA_REQ: offset=%d, size=%d", offset, size)
                     self.rpc.write_message(
                         RPCMessage(RPCMsgType.CMD_DEVICE_UPGRADE_DATA_REP, payload=chunk)
                     )
-                    pct = int(offset / len(rom_data) * 100)
+
+                    transferred += len(chunk)
+                    if start_time is None:
+                        start_time = time.monotonic()
+
+                    pct = int(offset / total * 100)
+                    speed_text, eta_text = self._calc_progress(transferred, total, start_time)
                     self.progress_updated.emit(pct)
+                    self.progress_detail.emit(pct, speed_text, eta_text)
                 elif msg.mtype == RPCMsgType.CMD_DEVICE_UPGRADE_REP:
                     self.progress_updated.emit(100)
+                    self.progress_detail.emit(100, "", "")
                     result = self._parse_upgrade_rep(msg.payload)
                     self.ota_finished.emit(result)
                     break
@@ -90,6 +106,25 @@ class OTAWorker(QThread):
         except Exception as e:
             LOG.exception(e)
             self.ota_error.emit(str(e))
+
+    @staticmethod
+    def _calc_progress(transferred, total, start_time):
+        elapsed = time.monotonic() - start_time
+        if elapsed < 0.1:
+            return "", ""
+        speed = transferred / elapsed
+        remaining_bytes = total - transferred
+        eta_secs = remaining_bytes / speed if speed > 0 else 0
+
+        if speed >= 1024 * 1024:
+            speed_text = f"{speed / 1024 / 1024:.1f} MB/s"
+        else:
+            speed_text = f"{speed / 1024:.1f} KB/s"
+
+        mins = int(eta_secs) // 60
+        secs = int(eta_secs) % 60
+        eta_text = f"剩余 {mins:02d}:{secs:02d}"
+        return speed_text, eta_text
 
     def _parse_upgrade_rep(self, payload: bytes) -> dict:
         """解析升级回复：unfinished/successed/requested 设备 MAC 列表。"""

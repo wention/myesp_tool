@@ -7,6 +7,9 @@ class RPCPktError(Exception):
     pass
 
 
+class RPCTimeoutError(Exception):
+    pass
+
 class RPCInvalidPktError(RPCPktError):
     """无效包异常，当包的 magic 或其他字段不合法时抛出"""
     pass

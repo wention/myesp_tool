@@ -53,7 +53,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         super().__init__(parent)
         self.setupUi(self)
 
-        self._port = "/dev/ttyUSB0"
+        self._port = "/dev/ttyUSB1"
         self.gateway_rpc = None
 
         for k, v in ChannelOptions:
@@ -157,11 +157,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         peer_addrs = self.device_model.get_peer_addresses(rows)
         self.ota_progress.setValue(0)
+        self.ota_status_label.setText("")
         self.btn_app_flash.setEnabled(False)
         self.btn_scan.setEnabled(False)
 
         self._ota_worker = OTAWorker(rpc, peer_addrs, firmware_path)
         self._ota_worker.progress_updated.connect(self.ota_progress.setValue)
+        self._ota_worker.progress_detail.connect(self._on_ota_progress_detail)
         self._ota_worker.ota_finished.connect(self._on_ota_finished)
         self._ota_worker.ota_error.connect(self._on_ota_error)
         self._ota_worker.start()
@@ -170,6 +172,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def _on_ota_finished(self, result):
         self.btn_app_flash.setEnabled(True)
         self.btn_scan.setEnabled(True)
+        self.ota_status_label.setText("")
         n_ok = len(result["successed"])
         n_fail = len(result["unfinished"])
         self.statusbar.showMessage(f"烧录完成: 成功 {n_ok}, 失败 {n_fail}")
@@ -179,8 +182,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def _on_ota_error(self, err_msg):
         self.btn_app_flash.setEnabled(True)
         self.btn_scan.setEnabled(True)
+        self.ota_status_label.setText("")
         self.statusbar.showMessage(f"烧录错误: {err_msg}")
         self._ota_worker = None
+
+    @Slot(int, str, str)
+    def _on_ota_progress_detail(self, pct, speed_text, eta_text):
+        parts = []
+        if speed_text:
+            parts.append(speed_text)
+        if eta_text:
+            parts.append(eta_text)
+        self.ota_status_label.setText("  |  ".join(parts))
 
     @Slot()
     def on_btn_light_high_clicked(self):

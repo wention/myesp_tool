@@ -9,7 +9,7 @@ from myesp_tool.rpc import utils
 from myesp_tool.rpc.constants import RPC_MSG_MAGIC, RPC_MSG_VERSION, RPCMsgType, CONFIG_NS_MAX_SIZE, \
     CONFIG_KEY_MAX_SIZE, ConfigValType
 from myesp_tool.rpc.crc import esp_crc16_le
-from myesp_tool.rpc.exceptions import RPCInvalidPktError, RPCIncompletePktError
+from myesp_tool.rpc.exceptions import RPCInvalidPktError, RPCIncompletePktError, RPCTimeoutError
 from myesp_tool.rpc.protobuffer import ProtoBuffer, PB_LITTLEENDIAN
 
 LOG = logging.getLogger(__name__)
@@ -134,18 +134,23 @@ class RPCMessage(object):
 class GatewaySerialRPC(object):
     def __init__(self, port):
         self.port = port
-        self.serial = serial.Serial(port, 115200, bytesize=8, parity='N', stopbits=1, timeout=1)
+        self.serial = serial.Serial(port, 115200, bytesize=8, parity='N', stopbits=1, timeout=10)
         self.is_connected = False
 
     def write(self, data):
         if not self.serial.is_open:
             self.serial.open()
-        self.serial.write(data)
+        ret = self.serial.write(data)
+        if ret == 0:
+            raise RPCTimeoutError("串口写入超时")
+        return ret
 
     def read(self, size):
         if not self.serial.is_open:
             self.serial.open()
         data = self.serial.read(size)
+        if len(data) == 0:
+            raise RPCTimeoutError("串口读取超时")
         return data
 
     def write_message(self, msg: RPCMessage):
@@ -154,7 +159,7 @@ class GatewaySerialRPC(object):
         LOG.debug("DUMP: \n%s", utils.hexdump(pkt))
         self.write(pkt)
 
-    def read_message(self) -> RPCMessage:
+    def read_message(self, timeout=5) -> RPCMessage:
         header_size = 7
 
         data = self.read(header_size)
