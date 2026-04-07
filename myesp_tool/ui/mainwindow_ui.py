@@ -265,7 +265,7 @@ class Ui_MainWindow(object):
         MainWindow.setStatusBar(self.statusbar)
 
         self.retranslateUi(MainWindow)
-        self.tabWidget.setCurrentIndex(1)
+        self.tabWidget.setCurrentIndex(0)
         self.edit_light_brightness_slider.valueChanged['int'].connect(self.edit_light_brightness.setValue) # type: ignore
         self.edit_light_brightness.valueChanged['int'].connect(self.edit_light_brightness_slider.setValue) # type: ignore
         QtCore.QMetaObject.connectSlotsByName(MainWindow)

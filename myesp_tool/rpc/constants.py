@@ -4,10 +4,11 @@ from enum import IntEnum, auto
 RPC_MSG_MAGIC = 0x1ff2
 RPC_MSG_VERSION = 0x0100
 
-
-class RPCMsgType(enum.IntEnum):
+class IntEnum(enum.IntEnum):
     def _generate_next_value_(name, start, count, last_values):
         return count  # 'count' starts at 0
+
+class RPCMsgType(IntEnum):
 
     # 设备扫描
     CMD_DEVICE_SCAN_REQ = auto()
@@ -50,7 +51,7 @@ class RPCMsgType(enum.IntEnum):
     CMD_ACK = auto()
 
 
-class ConfigValType(enum.IntEnum):
+class ConfigValType(IntEnum):
     TYPE_U8    = 0x01
     TYPE_I8    = 0x11
     TYPE_U16   = 0x02
@@ -73,3 +74,15 @@ TARGET_GROUP = 3
 TARGET_LIGHT_GROUP = 4
 TARGET_GW_GROUP = 5
 TARGET_USB = 6
+
+class DeviceState(IntEnum):
+    DEVICE_STATE_INIT = auto()
+    DEVICE_STATE_NORMAL = auto()
+    DEVICE_STATE_MAINTENANCE = auto()
+
+class LightState(IntEnum):
+    LIGHT_STATE_OFF = auto()
+    LIGHT_STATE_ON = auto()
+    LIGHT_STATE_BASIC = auto()
+    LIGHT_STATE_BREATHE = auto()
+    LIGHT_STATE_BLINK = auto()
