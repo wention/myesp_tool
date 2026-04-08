@@ -22,6 +22,36 @@ def test_probe(rpc: GatewaySerialRPC):
     if msg.mtype == RPCMsgType.CMD_SCAN_REP:
         pass
 
+
+def test_sub(rpc: GatewaySerialRPC):
+    rpc.write_message(RPCMessage(mtype=RPCMsgType.CMD_DEVICE_REPORT_SUB))
+
+    while True:
+        msg = rpc.read_message()
+        if msg.mtype == RPCMsgType.CMD_DEVICE_REPORT_PUB:
+            pb = ProtoBuffer(msg.payload)
+            addr = PeerAddress(pb.read_bytes(6))
+            pos_g = pb.read_uint8()
+            pos_x = pb.read_uint8()
+            pos_y = pb.read_uint8()
+            device_type = pb.read_uint8()
+            device_state = pb.read_uint8()
+            light_state = pb.read_uint8()
+            light_duty = pb.read_uint8()
+            radar_status = pb.read_uint8()
+
+            LOG.info("device report:")
+            LOG.info("    addr: %s", addr)
+            LOG.info("    pos: g=%d, x=%d, y=%d", pos_g, pos_x, pos_y)
+            LOG.info("    device_type: %s", device_type)
+            LOG.info("    device_state: %s", device_state)
+            LOG.info("    light_state: %s", light_state)
+            LOG.info("    light_duty: %s", light_duty)
+            LOG.info("    radar_status: %s", radar_status)
+
+            rpc.write_message(RPCMessage(mtype=RPCMsgType.CMD_DEVICE_REPORT_UNSUB))
+            pass
+
 def test_ota(rpc: GatewaySerialRPC):
     rom_filename = "/home/wention/Work/myesp_app/build/myesp_app.bin"
 
@@ -52,14 +82,12 @@ def test_ota(rpc: GatewaySerialRPC):
     pass
 
 def main():
-    # rpc = GatewaySerialRPC("/dev/ttyUSB0")
+    rpc = GatewaySerialRPC("/dev/ttyUSB0")
 
     # test_probe(rpc)
     # test_ota(rpc)
+    test_sub(rpc)
 
-    data = b"app\x00\x00\x00\x00\x00"
-    a = ctypes.string_at(data).decode("utf-8")
-    LOG.info("a=%s", a)
     pass
 
 
