@@ -32,21 +32,24 @@ class ScanWorker(QThread):
             self.scan_error.emit(str(e))
 
     def _parse_scan_reply(self, payload: bytes):
-        """解析扫描回复 payload。假设为 N 个连续的 6 字节 MAC 地址。"""
+        """解析扫描回复 payload。"""
         pb = ProtoBuffer(payload)
         n = pb.read_uint8()
         for i in range(n):
             addr = PeerAddress(pb.read_bytes(6))
+            pos_g = pb.read_uint8()
             pos_x = pb.read_uint8()
             pos_y = pb.read_uint8()
-            pos_z = pb.read_uint8()
             device_type = pb.read_uint8()
             channel = pb.read_uint8()
             rssi = pb.read_int8()
+            device_state = pb.read_uint8()
+            version = pb.read_bytes(32).split(b'\x00')[0].decode('utf-8', errors='replace')
 
             self.device_found.emit({
-                "mac": str(addr), "pos_x": pos_x, "pos_y": pos_y, "pos_z": pos_z,
+                "mac": str(addr), "pos_g": pos_g, "pos_x": pos_x, "pos_y": pos_y,
                 "device_type": device_type, "channel": channel, "rssi": rssi,
+                "device_state": device_state, "version": version,
             })
 
 

@@ -1,11 +1,17 @@
 from PyQt5.QtCore import Qt, QAbstractTableModel, QModelIndex
 
+from ..rpc.constants import DeviceState
 from ..rpc.rpc import PeerAddress
 
 
 class DeviceTableModel(QAbstractTableModel):
     DEVICE_TYPES = {0: "灯具", 1: "网关"}
-    COLUMNS = ["MAC 地址", "类型", "通道", "位置", "RSSI", "状态"]
+    DEVICE_STATES = {
+        DeviceState.DEVICE_STATE_INIT: "初始化",
+        DeviceState.DEVICE_STATE_NORMAL: "正常",
+        DeviceState.DEVICE_STATE_MAINTENANCE: "维护",
+    }
+    COLUMNS = ["MAC 地址", "类型", "通道", "位置", "RSSI", "状态", "版本"]
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -29,11 +35,13 @@ class DeviceTableModel(QAbstractTableModel):
         if col == 2:
             return str(device.get("channel", ""))
         if col == 3:
-            return f"({device.get('pos_x', '')}, {device.get('pos_y', '')}, {device.get('pos_z', '')})"
+            return f"({device.get('pos_g', '')}, {device.get('pos_x', '')}, {device.get('pos_y', '')})"
         if col == 4:
             return str(device.get("rssi", ""))
         if col == 5:
-            return device.get("status", "")
+            return self.DEVICE_STATES.get(device.get("device_state"), str(device.get("device_state", "")))
+        if col == 6:
+            return device.get("version", "")
 
     def headerData(self, section, orientation, role=Qt.DisplayRole):
         if orientation == Qt.Horizontal and role == Qt.DisplayRole:
