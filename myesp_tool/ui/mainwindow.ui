@@ -318,21 +318,21 @@
            <item row="0" column="1">
             <layout class="QHBoxLayout" name="horizontalLayout_2">
              <item>
-              <widget class="QLineEdit" name="edit_pos_x">
+              <widget class="QLineEdit" name="edit_pos_g">
                <property name="placeholderText">
                 <string>G</string>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QLineEdit" name="edit_pos_y">
+              <widget class="QLineEdit" name="edit_pos_x">
                <property name="placeholderText">
                 <string>X</string>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QLineEdit" name="edit_pos_z">
+              <widget class="QLineEdit" name="edit_pos_y">
                <property name="placeholderText">
                 <string>Y</string>
                </property>

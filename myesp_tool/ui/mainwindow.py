@@ -232,11 +232,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return
 
         addrs = self._get_target_addrs()
+        pos_g = int(self.edit_pos_g.text() or "0")
         pos_x = int(self.edit_pos_x.text() or "0")
         pos_y = int(self.edit_pos_y.text() or "0")
-        pos_z = int(self.edit_pos_z.text() or "0")
         mode = LightState.LIGHT_STATE_ON
-        msg = build_light_ctl_msg(addrs, pos_x, pos_y, pos_z, mode=mode, brightness=0)
+        msg = build_light_ctl_msg(addrs, pos_g, pos_x, pos_y, mode=mode, brightness=0)
         self.gateway_rpc.write_message(msg)
         self.gateway_rpc.read_message()
 
@@ -250,11 +250,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return
 
         addrs = self._get_target_addrs()
+        pos_g = int(self.edit_pos_g.text() or "0")
         pos_x = int(self.edit_pos_x.text() or "0")
         pos_y = int(self.edit_pos_y.text() or "0")
-        pos_z = int(self.edit_pos_z.text() or "0")
         mode = LightState.LIGHT_STATE_OFF
-        msg = build_light_ctl_msg(addrs, pos_x, pos_y, pos_z, mode=mode, brightness=0)
+        msg = build_light_ctl_msg(addrs, pos_g, pos_x, pos_y, mode=mode, brightness=0)
         self.gateway_rpc.write_message(msg)
         self.gateway_rpc.read_message()
 
@@ -267,12 +267,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return
 
         addrs = self._get_target_addrs()
+        pos_g = int(self.edit_pos_g.text() or "0")
         pos_x = int(self.edit_pos_x.text() or "0")
         pos_y = int(self.edit_pos_y.text() or "0")
-        pos_z = int(self.edit_pos_z.text() or "0")
         mode = LightState.LIGHT_STATE_BASIC
         brightness = self.edit_light_brightness.value()
-        msg = build_light_ctl_msg(addrs, pos_x, pos_y, pos_z, mode=mode, brightness=brightness)
+        msg = build_light_ctl_msg(addrs, pos_g, pos_x, pos_y, mode=mode, brightness=brightness)
         self.gateway_rpc.write_message(msg)
         self.gateway_rpc.read_message()
         pass
@@ -286,11 +286,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return
 
         addrs = self._get_target_addrs()
+        pos_g = int(self.edit_pos_g.text() or "0")
         pos_x = int(self.edit_pos_x.text() or "0")
         pos_y = int(self.edit_pos_y.text() or "0")
-        pos_z = int(self.edit_pos_z.text() or "0")
         mode = self.edit_light_mode.currentData()
-        msg = build_light_ctl_msg(addrs, pos_x, pos_y, pos_z, mode=mode, brightness=0)
+        msg = build_light_ctl_msg(addrs, pos_g, pos_x, pos_y, mode=mode, brightness=0)
         self.gateway_rpc.write_message(msg)
         self.gateway_rpc.read_message()
 
@@ -354,10 +354,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.statusbar.showMessage(f"读取配置信息......")
         self.statusbar.repaint()
 
-        msg = build_config_get_msg(addrs, "pos_x")
+        msg = build_config_get_msg(addrs, "pos_g")
         self.gateway_rpc.write_message(msg)
         msg = self.gateway_rpc.read_message()
         _, _, _, val = parse_kv(msg)
+        self.edit_pos_g.setText(str(val))
+
+        msg = build_config_get_msg(addrs, "pos_x")
+        self.gateway_rpc.write_message(msg)
+        msg = self.gateway_rpc.read_message()
+        _, _, _, val = parse_kv(msg, "")
         self.edit_pos_x.setText(str(val))
 
         msg = build_config_get_msg(addrs, "pos_y")
@@ -365,12 +371,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         msg = self.gateway_rpc.read_message()
         _, _, _, val = parse_kv(msg, "")
         self.edit_pos_y.setText(str(val))
-
-        msg = build_config_get_msg(addrs, "pos_z")
-        self.gateway_rpc.write_message(msg)
-        msg = self.gateway_rpc.read_message()
-        _, _, _, val = parse_kv(msg, "")
-        self.edit_pos_z.setText(str(val))
 
         msg = build_config_get_msg(addrs, "led_on_duty")
         self.gateway_rpc.write_message(msg)
@@ -422,14 +422,19 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.statusbar.showMessage(f"配置读写只能选择一个设备")
             return
 
+        pos_g = int(self.edit_pos_g.text())
         pos_x = int(self.edit_pos_x.text())
         pos_y = int(self.edit_pos_y.text())
-        pos_z = int(self.edit_pos_z.text())
         light_brightness_high = self.edit_light_brightness_high.value()
         light_brightness_low = self.edit_light_brightness_low.value()
         off_delay = self.edit_off_delay.value()
         radar_link_mode = self.edit_radar_link_mode.currentData()
         radar_link_range = self.edit_radar_link_range.value()
+
+        self.updateStatusMessage("写入配置 pos_g")
+        msg = build_config_set_msg(addrs, "pos_g", ConfigValType.TYPE_U8, pos_g)
+        self.gateway_rpc.write_message(msg)
+        msg = self.gateway_rpc.read_message()
 
         self.updateStatusMessage("写入配置 pos_x")
         msg = build_config_set_msg(addrs, "pos_x", ConfigValType.TYPE_U8, pos_x)
@@ -438,11 +443,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.updateStatusMessage("写入配置 pos_y")
         msg = build_config_set_msg(addrs, "pos_y", ConfigValType.TYPE_U8, pos_y)
-        self.gateway_rpc.write_message(msg)
-        msg = self.gateway_rpc.read_message()
-
-        self.updateStatusMessage("写入配置 pos_z")
-        msg = build_config_set_msg(addrs, "pos_z", ConfigValType.TYPE_U8, pos_z)
         self.gateway_rpc.write_message(msg)
         msg = self.gateway_rpc.read_message()
 
