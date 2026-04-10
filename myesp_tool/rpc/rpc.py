@@ -223,29 +223,29 @@ def build_upgrade_req_msg(addr_list: List[PeerAddress], sha256: bytes, firmware_
     return RPCMessage(mtype=RPCMsgType.CMD_DEVICE_UPGRADE_REQ, payload=pb.getvalue())
 
 
-def build_light_ctl_msg(addr_list: List[PeerAddress], pos_x: int, pos_y: int, pos_z: int,
-                        mode: int = 0, brightness: int = 100) -> RPCMessage:
+def build_light_ctl_msg(addr_list: List[PeerAddress], pos_g: int, pos_x: int, pos_y: int,
+                        state: int = 0, duty: int = 100) -> RPCMessage:
     """
     灯光控制请求
     data:
       [0]      addrs_num   1B    目标设备数 N（0=广播）
       [1]      addr_list   6*N   目标 MAC 地址列表
       [1+6N]   ctl         5B    灯光控制参数
-        [+0]   pos.x       1B
-        [+1]   pos.y       1B
-        [+2]   pos.z       1B
-        [+3]   mode        1B    灯光模式 (0=基础, 1=呼吸, 2=闪烁)
-        [+4]   brightness  1B    亮度 (0~100)
+        [+0]   pos.g       1B
+        [+1]   pos.x       1B
+        [+2]   pos.y       1B
+        [+3]   state       1B    灯光状态 (0=关, 1=开, 2=基础, 3=呼吸, 4=闪烁)
+        [+4]   duty        1B    占空比 (0~100)
     """
     pb = ProtoBuffer()
     pb.write_uint8(len(addr_list))
     for addr in addr_list:
         pb.write_bytes(addr.peer_addr)
+    pb.write_uint8(pos_g)
     pb.write_uint8(pos_x)
     pb.write_uint8(pos_y)
-    pb.write_uint8(pos_z)
-    pb.write_uint8(mode)
-    pb.write_uint8(brightness)
+    pb.write_uint8(state)
+    pb.write_uint8(duty)
     return RPCMessage(mtype=RPCMsgType.CMD_DEVICE_LIGHT_CTL_REQ, payload=pb.getvalue())
 
 def build_channel_set_msg(addr_list: List[PeerAddress], channel: int) -> RPCMessage:

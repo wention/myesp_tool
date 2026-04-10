@@ -237,8 +237,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         pos_g = int(self.edit_pos_g.text() or "0")
         pos_x = int(self.edit_pos_x.text() or "0")
         pos_y = int(self.edit_pos_y.text() or "0")
-        mode = LightState.LIGHT_STATE_BASIC
-        msg = build_light_ctl_msg(addrs, pos_g, pos_x, pos_y, mode=mode, brightness=100)
+        state = LightState.LIGHT_STATE_BASIC
+        msg = build_light_ctl_msg(addrs, pos_g, pos_x, pos_y, state=state, duty=100)
         self.gateway_rpc.write_message(msg)
         self.gateway_rpc.read_message()
 
@@ -255,8 +255,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         pos_g = int(self.edit_pos_g.text() or "0")
         pos_x = int(self.edit_pos_x.text() or "0")
         pos_y = int(self.edit_pos_y.text() or "0")
-        mode = LightState.LIGHT_STATE_BASIC
-        msg = build_light_ctl_msg(addrs, pos_g, pos_x, pos_y, mode=mode, brightness=0)
+        state = LightState.LIGHT_STATE_BASIC
+        msg = build_light_ctl_msg(addrs, pos_g, pos_x, pos_y, state=state, duty=0)
         self.gateway_rpc.write_message(msg)
         self.gateway_rpc.read_message()
 
@@ -273,8 +273,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         pos_g = int(self.edit_pos_g.text() or "0")
         pos_x = int(self.edit_pos_x.text() or "0")
         pos_y = int(self.edit_pos_y.text() or "0")
-        mode = LightState.LIGHT_STATE_BLINK
-        msg = build_light_ctl_msg(addrs, pos_g, pos_x, pos_y, mode=mode, brightness=0)
+        state = LightState.LIGHT_STATE_BLINK
+        msg = build_light_ctl_msg(addrs, pos_g, pos_x, pos_y, state=state, duty=0)
         self.gateway_rpc.write_message(msg)
         self.gateway_rpc.read_message()
 
@@ -291,8 +291,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         pos_g = int(self.edit_pos_g.text() or "0")
         pos_x = int(self.edit_pos_x.text() or "0")
         pos_y = int(self.edit_pos_y.text() or "0")
-        mode = LightState.LIGHT_STATE_BREATHE
-        msg = build_light_ctl_msg(addrs, pos_g, pos_x, pos_y, mode=mode, brightness=0)
+        state = LightState.LIGHT_STATE_BREATHE
+        msg = build_light_ctl_msg(addrs, pos_g, pos_x, pos_y, state=state, duty=0)
         self.gateway_rpc.write_message(msg)
         self.gateway_rpc.read_message()
 
@@ -308,9 +308,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         pos_g = int(self.edit_pos_g.text() or "0")
         pos_x = int(self.edit_pos_x.text() or "0")
         pos_y = int(self.edit_pos_y.text() or "0")
-        mode = LightState.LIGHT_STATE_BASIC
+        state = LightState.LIGHT_STATE_BASIC
         brightness = self.edit_light_brightness.value()
-        msg = build_light_ctl_msg(addrs, pos_g, pos_x, pos_y, mode=mode, brightness=brightness)
+        msg = build_light_ctl_msg(addrs, pos_g, pos_x, pos_y, state=state, duty=brightness)
         self.gateway_rpc.write_message(msg)
         self.gateway_rpc.read_message()
         pass
@@ -327,8 +327,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         pos_g = int(self.edit_pos_g.text() or "0")
         pos_x = int(self.edit_pos_x.text() or "0")
         pos_y = int(self.edit_pos_y.text() or "0")
-        mode = self.edit_light_mode.currentData()
-        msg = build_light_ctl_msg(addrs, pos_g, pos_x, pos_y, mode=mode, brightness=0)
+        state = self.edit_light_mode.currentData()
+        msg = build_light_ctl_msg(addrs, pos_g, pos_x, pos_y, state=state, duty=0)
         self.gateway_rpc.write_message(msg)
         self.gateway_rpc.read_message()
 
