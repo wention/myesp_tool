@@ -32,7 +32,7 @@ class ScanWorker(QThread):
             self.scan_error.emit(str(e))
 
     def _parse_scan_reply(self, payload: bytes):
-        """解析扫描回复 payload。"""
+        """解析扫描回复 payload。每个 probe_resp 85 字节。"""
         pb = ProtoBuffer(payload)
         n = pb.read_uint8()
         for i in range(n):
@@ -44,12 +44,18 @@ class ScanWorker(QThread):
             channel = pb.read_uint8()
             rssi = pb.read_int8()
             device_state = pb.read_uint8()
+            radar_link_mode = pb.read_uint8()
+            radar_link_range = pb.read_int8()
+            gw_addr = str(PeerAddress(pb.read_bytes(6)))
             version = pb.read_bytes(32).split(b'\x00')[0].decode('utf-8', errors='replace')
+            build_datetime = pb.read_bytes(32).split(b'\x00')[0].decode('utf-8', errors='replace')
 
             self.device_found.emit({
                 "mac": str(addr), "pos_g": pos_g, "pos_x": pos_x, "pos_y": pos_y,
                 "device_type": device_type, "channel": channel, "rssi": rssi,
-                "device_state": device_state, "version": version,
+                "device_state": device_state, "radar_link_mode": radar_link_mode,
+                "radar_link_range": radar_link_range, "gw_addr": gw_addr,
+                "version": version, "build_datetime": build_datetime,
             })
 
 

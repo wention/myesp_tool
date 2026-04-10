@@ -1,6 +1,8 @@
 from PyQt5.QtCore import Qt, QAbstractTableModel, QModelIndex
 
 from ..rpc.constants import DeviceState
+
+RADAR_LINK_MODES = {0: "X轴", 1: "Y轴", 2: "XY轴", 3: "信号"}
 from ..rpc.rpc import PeerAddress
 
 
@@ -11,7 +13,7 @@ class DeviceTableModel(QAbstractTableModel):
         DeviceState.DEVICE_STATE_NORMAL: "正常",
         DeviceState.DEVICE_STATE_MAINTENANCE: "维护",
     }
-    COLUMNS = ["MAC 地址", "类型", "通道", "位置(G,X,Y)", "RSSI", "状态", "版本"]
+    COLUMNS = ["MAC 地址", "类型", "通道", "位置(G,X,Y)", "RSSI", "状态", "联动模式", "联动范围", "网关", "版本", "构建时间"]
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -41,7 +43,15 @@ class DeviceTableModel(QAbstractTableModel):
         if col == 5:
             return self.DEVICE_STATES.get(device.get("device_state"), str(device.get("device_state", "")))
         if col == 6:
+            return RADAR_LINK_MODES.get(device.get("radar_link_mode"), str(device.get("radar_link_mode", "")))
+        if col == 7:
+            return str(device.get("radar_link_range", ""))
+        if col == 8:
+            return device.get("gw_addr", "")
+        if col == 9:
             return device.get("version", "")
+        if col == 10:
+            return device.get("build_datetime", "")
 
     def headerData(self, section, orientation, role=Qt.DisplayRole):
         if orientation == Qt.Horizontal and role == Qt.DisplayRole:
