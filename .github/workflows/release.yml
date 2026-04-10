@@ -11,9 +11,9 @@ jobs:
       fail-fast: false
       matrix:
         variant:
-          - name: windows_amd64
+          - name: myesp-tool_windows_amd64
             os: windows-latest
-          - name: linux_amd64
+          - name: myesp-tool_linux_amd64
             os: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
