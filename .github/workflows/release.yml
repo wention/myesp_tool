@@ -5,6 +5,7 @@ on:
 
 jobs:
   build:
+    name: build ${{ matrix.variant.name }}
     runs-on: ${{ matrix.variant.os }}
     strategy:
       fail-fast: false
