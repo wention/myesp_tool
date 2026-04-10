@@ -16,10 +16,10 @@ from myesp_tool.rpc.rpc import GatewaySerialRPC, RPCMessage, PeerAddress, build_
 from myesp_tool.rpc.utils import hexdump
 
 def test_probe(rpc: GatewaySerialRPC):
-    rpc.write_message(RPCMessage(mtype=RPCMsgType.CMD_SCAN_REQ))
+    rpc.write_message(RPCMessage(mtype=RPCMsgType.CMD_DEVICE_SCAN_REQ))
 
     msg = rpc.read_message()
-    if msg.mtype == RPCMsgType.CMD_SCAN_REP:
+    if msg.mtype == RPCMsgType.CMD_DEVICE_SCAN_REP:
         pass
 
 
