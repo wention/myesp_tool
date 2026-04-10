@@ -70,3 +70,23 @@ def load_file(filename: str) -> bytes:
 def sha256sum(data: bytes) -> bytes:
     """计算数据的 SHA-256 校验和，返回 32 字节摘要"""
     return hashlib.sha256(data).digest()
+
+
+from datetime import datetime
+
+MONTH_MAP = {
+    'Jan': 1, 'Feb': 2, 'Mar': 3, 'Apr': 4, 'May': 5, 'Jun': 6,
+    'Jul': 7, 'Aug': 8, 'Sep': 9, 'Oct': 10, 'Nov': 11, 'Dec': 12,
+}
+
+def parse_build_datetime(date_str):
+    try:
+        # 手动替换 "Apr" → "04"，避开 %b 的 locale 问题
+        parts = date_str.split()
+        month = MONTH_MAP[parts[0]]
+        parts[0] = f"{month:02d}"
+        new_str = " ".join(parts)  # "04 11 2026 00:10:10"
+        result = datetime.strptime(new_str, "%m %d %Y %H:%M:%S")
+        return result
+    except Exception as e:
+        pass

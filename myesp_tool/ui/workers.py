@@ -1,5 +1,6 @@
 import logging
 import time
+from datetime import datetime
 
 from PyQt5.QtCore import QThread, pyqtSignal as Signal
 
@@ -48,7 +49,9 @@ class ScanWorker(QThread):
             radar_link_range = pb.read_int8()
             gw_addr = str(PeerAddress(pb.read_bytes(6)))
             version = pb.read_bytes(32).split(b'\x00')[0].decode('utf-8', errors='replace')
-            build_datetime = pb.read_bytes(32).split(b'\x00')[0].decode('utf-8', errors='replace')
+            build_datetime = utils.parse_build_datetime(pb.read_bytes(32).split(b'\x00')[0].decode('utf-8', errors='replace'))
+            if build_datetime:
+                build_datetime = build_datetime.strftime("%Y/%m/%d %H:%M:%S")
 
             self.device_found.emit({
                 "mac": str(addr), "pos_g": pos_g, "pos_x": pos_x, "pos_y": pos_y,
