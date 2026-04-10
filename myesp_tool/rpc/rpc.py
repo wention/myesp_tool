@@ -311,17 +311,17 @@ def build_config_set_msg(addr_list: List[PeerAddress], key, vtype, value) -> RPC
         pb.write_int8(value)
     elif vtype == ConfigValType.TYPE_U8:
         pb.write_uint8(value)
-    if vtype == ConfigValType.TYPE_I16:
+    elif vtype == ConfigValType.TYPE_I16:
         pb.write_int16(value)
     elif vtype == ConfigValType.TYPE_U16:
         pb.write_uint16(value)
-    if vtype == ConfigValType.TYPE_I32:
+    elif vtype == ConfigValType.TYPE_I32:
         pb.write_int32(value)
     elif vtype == ConfigValType.TYPE_U32:
         pb.write_uint32(value)
-    if vtype == ConfigValType.TYPE_STR:
+    elif vtype == ConfigValType.TYPE_STR:
         data = value.encode("utf-8")
-        pb.write_bytes(data, len(data))
-    elif vtype == ConfigValType.TYPE_U32:
-        pb.write_bytes(value, len(value))
+        pb.write_bytes(data)
+    elif vtype == ConfigValType.TYPE_BLOB:
+        pb.write_bytes(value)
     return RPCMessage(mtype=RPCMsgType.CMD_DEVICE_CONFIG_SET_REQ, payload=pb.getvalue())
