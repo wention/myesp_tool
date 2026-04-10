@@ -6,6 +6,14 @@ on:
 jobs:
   build:
     runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        variant:
+          - name: windows_amd64
+            os: windows-latest
+          - name: linux_amd64
+            os: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
 
@@ -21,6 +29,13 @@ jobs:
       - name: Build with PyInstaller
         run: uv run pyinstaller -F -w --name MyESPTool myesp_tool/main.py
 
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.variant.name }}
+          path: dist/MyESPTool.exe
+          retention-days: 30
+
       - name: Publish Release
         uses: softprops/action-gh-release@v2
         with:
@@ -28,4 +43,43 @@ jobs:
           name: "Nightly Build"
           draft: false
           prerelease: true
-          files: dist/MyESPTool.exe
+          files: dist/
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          skip-decompress: true
+      - name: Display structure of downloaded files
+        run: ls -R
+      - name: Compress files
+        run: ls | xargs -i zip -r {}.zip {}
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: "Nightly Build"
+          draft: false
+          prerelease: true
+          files: |
+            *.zip
+          body: |
+            ## 🚀 Nightly Build
+            
+            **Build Number:** ${{ github.run_number }}
+            **Commit:** ${{ github.sha }}
+            **Triggered by:** ${{ github.triggering_actor }}
+            
+            ### 📦 包含的固件
+            $(ls *.zip 2>/dev/null | sed 's/^/- /')
+            
+            > ⚠️ 这是自动构建的预览版本，请谨慎使用
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
