@@ -45,9 +45,9 @@ TargetOptions = [
 ]
 
 DeviceTypeOptions = [
-    ("全部", 0),
-    ("灯具", 1),
-    ("网关", 2),
+    ("全部", -1),
+    ("灯具", 0),
+    ("网关", 1),
 ]
 
 RadarLinkModeOptions = [
@@ -379,7 +379,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 value = pb.read_uint32()
             elif vtype == ConfigValType.TYPE_BLOB:
                 value = pb.read_bytes(data_len)
-            elif vtype == ConfigValType.TYPE_BLOB:
+            elif vtype == ConfigValType.TYPE_STR:
                 value = pb.read_fix_string(data_len, "utf-8")
 
             return ns, key, vtype, value
