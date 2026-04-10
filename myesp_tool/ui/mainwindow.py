@@ -61,7 +61,9 @@ RadarLinkModeOptions = [
 class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
+        # UI
         self.setupUi(self)
+        self.groupBox.setVisible(False)
 
         self._serial_config = get_serial_config()
         self.gateway_rpc = None
@@ -223,7 +225,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.ota_status_label.setText("  |  ".join(parts))
 
     @Slot()
-    def on_btn_light_high_clicked(self):
+    def on_btn_light_on_clicked(self):
         """灯亮"""
         try:
             self._ensure_rpc()
@@ -235,13 +237,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         pos_g = int(self.edit_pos_g.text() or "0")
         pos_x = int(self.edit_pos_x.text() or "0")
         pos_y = int(self.edit_pos_y.text() or "0")
-        mode = LightState.LIGHT_STATE_ON
-        msg = build_light_ctl_msg(addrs, pos_g, pos_x, pos_y, mode=mode, brightness=0)
+        mode = LightState.LIGHT_STATE_BASIC
+        msg = build_light_ctl_msg(addrs, pos_g, pos_x, pos_y, mode=mode, brightness=100)
         self.gateway_rpc.write_message(msg)
         self.gateway_rpc.read_message()
 
     @Slot()
-    def on_btn_light_low_clicked(self):
+    def on_btn_light_off_clicked(self):
         """灯暗"""
         try:
             self._ensure_rpc()
@@ -253,7 +255,43 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         pos_g = int(self.edit_pos_g.text() or "0")
         pos_x = int(self.edit_pos_x.text() or "0")
         pos_y = int(self.edit_pos_y.text() or "0")
-        mode = LightState.LIGHT_STATE_OFF
+        mode = LightState.LIGHT_STATE_BASIC
+        msg = build_light_ctl_msg(addrs, pos_g, pos_x, pos_y, mode=mode, brightness=0)
+        self.gateway_rpc.write_message(msg)
+        self.gateway_rpc.read_message()
+
+    @Slot()
+    def on_btn_light_blink_clicked(self):
+        """灯闪烁"""
+        try:
+            self._ensure_rpc()
+        except Exception as e:
+            self.statusbar.showMessage(f"串口打开失败: {e}")
+            return
+
+        addrs = self._get_target_addrs()
+        pos_g = int(self.edit_pos_g.text() or "0")
+        pos_x = int(self.edit_pos_x.text() or "0")
+        pos_y = int(self.edit_pos_y.text() or "0")
+        mode = LightState.LIGHT_STATE_BLINK
+        msg = build_light_ctl_msg(addrs, pos_g, pos_x, pos_y, mode=mode, brightness=0)
+        self.gateway_rpc.write_message(msg)
+        self.gateway_rpc.read_message()
+
+    @Slot()
+    def on_btn_light_breathe_clicked(self):
+        """灯呼吸"""
+        try:
+            self._ensure_rpc()
+        except Exception as e:
+            self.statusbar.showMessage(f"串口打开失败: {e}")
+            return
+
+        addrs = self._get_target_addrs()
+        pos_g = int(self.edit_pos_g.text() or "0")
+        pos_x = int(self.edit_pos_x.text() or "0")
+        pos_y = int(self.edit_pos_y.text() or "0")
+        mode = LightState.LIGHT_STATE_BREATHE
         msg = build_light_ctl_msg(addrs, pos_g, pos_x, pos_y, mode=mode, brightness=0)
         self.gateway_rpc.write_message(msg)
         self.gateway_rpc.read_message()
@@ -357,7 +395,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         msg = build_config_get_msg(addrs, "pos_g")
         self.gateway_rpc.write_message(msg)
         msg = self.gateway_rpc.read_message()
-        _, _, _, val = parse_kv(msg)
+        _, _, _, val = parse_kv(msg, "")
         self.edit_pos_g.setText(str(val))
 
         msg = build_config_get_msg(addrs, "pos_x")
@@ -376,20 +414,19 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.gateway_rpc.write_message(msg)
         msg = self.gateway_rpc.read_message()
         _, _, _, val = parse_kv(msg, 100)
-        self.edit_light_brightness_high.setValue(val)
+        self.edit_light_on_duty.setValue(val)
 
         msg = build_config_get_msg(addrs, "led_off_duty")
         self.gateway_rpc.write_message(msg)
         msg = self.gateway_rpc.read_message()
         _, _, _, val = parse_kv(msg, 10)
-        self.edit_light_brightness_low.setValue(val)
+        self.edit_light_off_duty.setValue(val)
 
         msg = build_config_get_msg(addrs, "led_off_delay")
         self.gateway_rpc.write_message(msg)
         msg = self.gateway_rpc.read_message()
         _, _, _, val = parse_kv(msg, 0)
-        self.edit_light_brightness_low.setValue(val)
-
+        self.edit_light_off_delay.setValue(val)
 
         msg = build_config_get_msg(addrs, "radar_lk_mode")
         self.gateway_rpc.write_message(msg)
@@ -425,9 +462,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         pos_g = int(self.edit_pos_g.text())
         pos_x = int(self.edit_pos_x.text())
         pos_y = int(self.edit_pos_y.text())
-        light_brightness_high = self.edit_light_brightness_high.value()
-        light_brightness_low = self.edit_light_brightness_low.value()
-        off_delay = self.edit_off_delay.value()
+        light_on_duty = self.edit_light_on_duty.value()
+        light_off_duty = self.edit_light_off_duty.value()
+        light_off_delay = self.edit_light_off_delay.value()
         radar_link_mode = self.edit_radar_link_mode.currentData()
         radar_link_range = self.edit_radar_link_range.value()
 
@@ -447,18 +484,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         msg = self.gateway_rpc.read_message()
 
         self.updateStatusMessage("写入配置 led_on_duty")
-        msg = build_config_set_msg(addrs, "led_on_duty", ConfigValType.TYPE_U8, light_brightness_high)
+        msg = build_config_set_msg(addrs, "led_on_duty", ConfigValType.TYPE_U8, light_on_duty)
         self.gateway_rpc.write_message(msg)
         msg = self.gateway_rpc.read_message()
 
         self.updateStatusMessage("写入配置 led_off_duty")
-        msg = build_config_set_msg(addrs, "led_off_duty", ConfigValType.TYPE_U8, light_brightness_low)
+        msg = build_config_set_msg(addrs, "led_off_duty", ConfigValType.TYPE_U8, light_off_duty)
         self.gateway_rpc.write_message(msg)
         msg = self.gateway_rpc.read_message()
 
 
         self.updateStatusMessage("写入配置 led_off_delay")
-        msg = build_config_set_msg(addrs, "led_off_delay", ConfigValType.TYPE_U16, off_delay)
+        msg = build_config_set_msg(addrs, "led_off_delay", ConfigValType.TYPE_U16, light_off_delay)
         self.gateway_rpc.write_message(msg)
         msg = self.gateway_rpc.read_message()
 

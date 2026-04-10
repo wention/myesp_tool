@@ -99,26 +99,26 @@
            </property>
            <layout class="QGridLayout" name="gridLayout_4">
             <item row="0" column="0">
-             <widget class="QPushButton" name="btn_light_high">
+             <widget class="QPushButton" name="btn_light_on">
               <property name="text">
                <string>灯亮</string>
               </property>
              </widget>
             </item>
             <item row="1" column="0">
-             <widget class="QPushButton" name="btn_light_low">
+             <widget class="QPushButton" name="btn_light_off">
               <property name="text">
-               <string>灯暗</string>
+               <string>灯灭</string>
               </property>
              </widget>
             </item>
             <item row="1" column="1">
-             <widget class="QPushButton" name="pushButton">
+             <widget class="QPushButton" name="btn_light_breathe">
               <property name="enabled">
-               <bool>false</bool>
+               <bool>true</bool>
               </property>
               <property name="text">
-               <string/>
+               <string>灯呼吸</string>
               </property>
              </widget>
             </item>
@@ -140,12 +140,12 @@
              </widget>
             </item>
             <item row="0" column="1">
-             <widget class="QPushButton" name="pushButton_4">
+             <widget class="QPushButton" name="btn_light_blink">
               <property name="enabled">
-               <bool>false</bool>
+               <bool>true</bool>
               </property>
               <property name="text">
-               <string/>
+               <string>灯闪烁</string>
               </property>
              </widget>
             </item>
@@ -348,7 +348,7 @@
             </widget>
            </item>
            <item row="1" column="1">
-            <widget class="QSpinBox" name="edit_light_brightness_high">
+            <widget class="QSpinBox" name="edit_light_on_duty">
              <property name="maximum">
               <number>100</number>
              </property>
@@ -362,7 +362,7 @@
             </widget>
            </item>
            <item row="2" column="1">
-            <widget class="QSpinBox" name="edit_light_brightness_low">
+            <widget class="QSpinBox" name="edit_light_off_duty">
              <property name="maximum">
               <number>100</number>
              </property>
@@ -406,7 +406,7 @@
             </widget>
            </item>
            <item row="3" column="1">
-            <widget class="QSpinBox" name="edit_off_delay">
+            <widget class="QSpinBox" name="edit_light_off_delay">
              <property name="maximum">
               <number>65535</number>
              </property>

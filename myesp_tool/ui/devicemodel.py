@@ -11,7 +11,7 @@ class DeviceTableModel(QAbstractTableModel):
         DeviceState.DEVICE_STATE_NORMAL: "正常",
         DeviceState.DEVICE_STATE_MAINTENANCE: "维护",
     }
-    COLUMNS = ["MAC 地址", "类型", "通道", "位置", "RSSI", "状态", "版本"]
+    COLUMNS = ["MAC 地址", "类型", "通道", "位置(G,X,Y)", "RSSI", "状态", "版本"]
 
     def __init__(self, parent=None):
         super().__init__(parent)
