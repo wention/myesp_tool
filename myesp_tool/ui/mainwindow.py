@@ -1,4 +1,4 @@
-from PyQt5.QtCore import pyqtSlot as Slot
+from PyQt5.QtCore import pyqtSlot as Slot, QSortFilterProxyModel
 from PyQt5.QtWidgets import QMainWindow, QFileDialog, QAbstractItemView
 
 from .mainwindow_ui import Ui_MainWindow
@@ -91,15 +91,30 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # 设备列表模型
         self.device_model = DeviceTableModel(self)
-        self.deviceListView.setModel(self.device_model)
+        self.device_proxy_model = QSortFilterProxyModel(self)
+        self.device_proxy_model.setSourceModel(self.device_model)
+        self.deviceListView.setModel(self.device_proxy_model)
         self.deviceListView.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.deviceListView.setSelectionMode(QAbstractItemView.MultiSelection)
+        self.deviceListView.setSortingEnabled(True)
 
         # 工作线程
         self._scan_worker = None
         self._ota_worker = None
 
         self.ota_progress.setValue(0)
+
+        # 设备类型过滤
+        self.edit_device_type_filter.currentIndexChanged.connect(self._on_device_type_filter_changed)
+
+    def _on_device_type_filter_changed(self):
+        type_filter = self.edit_device_type_filter.currentData()
+        if type_filter == -1:
+            self.device_proxy_model.setFilterFixedString("")
+        else:
+            type_name = DeviceTableModel.DEVICE_TYPES.get(type_filter, "")
+            self.device_proxy_model.setFilterKeyColumn(1)
+            self.device_proxy_model.setFilterFixedString(type_name)
 
     def _ensure_rpc(self):
         """懒初始化串口连接。"""
@@ -555,14 +570,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         elif target_select == TARGET_USB:
             return [PeerAddress("00:00:00:00:00:00")]
         elif target_select == TARGET_BY_SELECT:
-            rows = set(idx.row() for idx in self.deviceListView.selectionModel().selectedRows())
+            rows = set(self.device_proxy_model.mapToSource(idx).row()
+                       for idx in self.deviceListView.selectionModel().selectedRows())
             if rows:
                 return self.device_model.get_peer_addresses(rows)
         return []
 
     def _get_selected_addrs(self):
         """获取选中设备的 PeerAddress 列表，未选中则为空列表（广播）。"""
-        rows = set(idx.row() for idx in self.deviceListView.selectionModel().selectedRows())
+        rows = set(self.device_proxy_model.mapToSource(idx).row()
+                   for idx in self.deviceListView.selectionModel().selectedRows())
         if rows:
             return self.device_model.get_peer_addresses(rows)
         return []
