@@ -521,6 +521,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.updateStatusMessage("配置写入完成")
 
+        msg = build_device_reboot_msg(addrs, 100)
+        self.gateway_rpc.write_message(msg)
+        self.gateway_rpc.read_message()
+
     def updateStatusMessage(self, msg, repaint=False):
         self.statusbar.showMessage(msg)
         self.statusbar.repaint()
