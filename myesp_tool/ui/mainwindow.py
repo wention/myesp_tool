@@ -442,6 +442,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         _, _, _, val = parse_kv(msg, -65)
         self.edit_radar_link_range.setValue(val)
 
+        msg = build_config_get_msg(addrs, "gateway_addr")
+        self.gateway_rpc.write_message(msg)
+        msg = self.gateway_rpc.read_message()
+        _, _, _, val = parse_kv(msg )
+
+        if val is None:
+            val = "ff:ff:ff:ff:ff:ff"
+        self.edit_gw_addr.setText(str(PeerAddress(val)))
 
         self.statusbar.showMessage(f"读取配置完成")
         pass
@@ -468,46 +476,50 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         radar_link_mode = self.edit_radar_link_mode.currentData()
         radar_link_range = self.edit_radar_link_range.value()
 
-        self.updateStatusMessage("写入配置 pos_g")
+        self.updateStatusMessage("写入配置...")
         msg = build_config_set_msg(addrs, "pos_g", ConfigValType.TYPE_U8, pos_g)
         self.gateway_rpc.write_message(msg)
         msg = self.gateway_rpc.read_message()
 
-        self.updateStatusMessage("写入配置 pos_x")
         msg = build_config_set_msg(addrs, "pos_x", ConfigValType.TYPE_U8, pos_x)
         self.gateway_rpc.write_message(msg)
         msg = self.gateway_rpc.read_message()
 
-        self.updateStatusMessage("写入配置 pos_y")
         msg = build_config_set_msg(addrs, "pos_y", ConfigValType.TYPE_U8, pos_y)
         self.gateway_rpc.write_message(msg)
         msg = self.gateway_rpc.read_message()
 
-        self.updateStatusMessage("写入配置 led_on_duty")
         msg = build_config_set_msg(addrs, "led_on_duty", ConfigValType.TYPE_U8, light_on_duty)
         self.gateway_rpc.write_message(msg)
         msg = self.gateway_rpc.read_message()
 
-        self.updateStatusMessage("写入配置 led_off_duty")
         msg = build_config_set_msg(addrs, "led_off_duty", ConfigValType.TYPE_U8, light_off_duty)
         self.gateway_rpc.write_message(msg)
         msg = self.gateway_rpc.read_message()
 
 
-        self.updateStatusMessage("写入配置 led_off_delay")
         msg = build_config_set_msg(addrs, "led_off_delay", ConfigValType.TYPE_U16, light_off_delay)
         self.gateway_rpc.write_message(msg)
         msg = self.gateway_rpc.read_message()
 
-        self.updateStatusMessage("写入配置 radar_lk_mode")
         msg = build_config_set_msg(addrs, "radar_lk_mode", ConfigValType.TYPE_U8, radar_link_mode)
         self.gateway_rpc.write_message(msg)
         msg = self.gateway_rpc.read_message()
 
-        self.updateStatusMessage("写入配置 radar_lk_range")
         msg = build_config_set_msg(addrs, "radar_lk_range", ConfigValType.TYPE_I8, radar_link_range)
         self.gateway_rpc.write_message(msg)
         msg = self.gateway_rpc.read_message()
+
+        try:
+            gw_addr = PeerAddress(self.edit_gw_addr.text())
+        except Exception as e:
+            self.updateStatusMessage("无效的网关地址")
+            pass
+        msg = build_config_set_msg(addrs, "gateway_addr", ConfigValType.TYPE_BLOB, gw_addr.peer_addr)
+        self.gateway_rpc.write_message(msg)
+        msg = self.gateway_rpc.read_message()
+
+        self.updateStatusMessage("配置写入完成")
 
     def updateStatusMessage(self, msg, repaint=False):
         self.statusbar.showMessage(msg)
