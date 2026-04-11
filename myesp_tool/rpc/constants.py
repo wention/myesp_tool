@@ -86,3 +86,6 @@ class LightState(IntEnum):
     LIGHT_STATE_BASIC = auto()
     LIGHT_STATE_BREATHE = auto()
     LIGHT_STATE_BLINK = auto()
+
+ESPNOW_CHANNEL_CURRENT = 0
+ESPNOW_CHANNEL_ALL = 0x0f

@@ -10,7 +10,8 @@ from ..rpc.protobuffer import ProtoBuffer
 from ..rpc.rpc import GatewaySerialRPC, RPCMessage, PeerAddress, build_light_ctl_msg, build_channel_set_msg, \
     build_config_get_msg, build_config_set_msg, build_device_reboot_msg
 from ..rpc.constants import RPCMsgType, TARGET_BROADCAST, TARGET_BY_SELECT, TARGET_GROUP, TARGET_USB, \
-    TARGET_LIGHT_GROUP, TARGET_GW_GROUP, CONFIG_NS_MAX_SIZE, CONFIG_KEY_MAX_SIZE, ConfigValType, LightState
+    TARGET_LIGHT_GROUP, TARGET_GW_GROUP, CONFIG_NS_MAX_SIZE, CONFIG_KEY_MAX_SIZE, ConfigValType, LightState, \
+    ESPNOW_CHANNEL_ALL, ESPNOW_CHANNEL_CURRENT
 
 LightModeOptions = [
     ("灯暗", LightState.LIGHT_STATE_OFF),
@@ -147,9 +148,38 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.device_model.clear()
         self.btn_scan.setEnabled(False)
+        self.btn_all_channel_scan.setEnabled(False)
         self.btn_scan.setText("扫描中...")
+        self.btn_all_channel_scan.setText("扫描中...")
 
-        self._scan_worker = ScanWorker(rpc)
+        self._scan_worker = ScanWorker(rpc, ESPNOW_CHANNEL_CURRENT)
+        self._scan_worker.device_found.connect(self._on_device_found)
+        self._scan_worker.scan_finished.connect(self._on_scan_finished)
+        self._scan_worker.scan_error.connect(self._on_scan_error)
+        self._scan_worker.start()
+
+    @Slot()
+    def on_btn_all_channel_scan_clicked(self):
+        """全频道扫描按钮 — 扫描设备。"""
+        if self._scan_worker is not None and self._scan_worker.isRunning():
+            return
+        if self._ota_worker is not None and self._ota_worker.isRunning():
+            self.statusbar.showMessage("OTA 进行中，无法扫描")
+            return
+
+        try:
+            rpc = self._ensure_rpc()
+        except Exception as e:
+            self.statusbar.showMessage(f"串口打开失败: {e}")
+            return
+
+        self.device_model.clear()
+        self.btn_scan.setEnabled(False)
+        self.btn_all_channel_scan.setEnabled(False)
+        self.btn_scan.setText("扫描中...")
+        self.btn_all_channel_scan.setText("扫描中...")
+
+        self._scan_worker = ScanWorker(rpc, ESPNOW_CHANNEL_ALL)
         self._scan_worker.device_found.connect(self._on_device_found)
         self._scan_worker.scan_finished.connect(self._on_scan_finished)
         self._scan_worker.scan_error.connect(self._on_scan_error)
@@ -162,14 +192,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     @Slot()
     def _on_scan_finished(self):
         self.btn_scan.setEnabled(True)
+        self.btn_all_channel_scan.setEnabled(True)
         self.btn_scan.setText("扫描")
+        self.btn_all_channel_scan.setText("全频道扫描")
         self.statusbar.showMessage(f"扫描完成，发现 {self.device_model.rowCount()} 个设备")
         self._scan_worker = None
 
     @Slot(str)
     def _on_scan_error(self, err_msg):
         self.btn_scan.setEnabled(True)
+        self.btn_all_channel_scan.setEnabled(True)
         self.btn_scan.setText("扫描")
+        self.btn_all_channel_scan.setText("全频道扫描")
         self.statusbar.showMessage(f"扫描错误: {err_msg}")
         self._scan_worker = None
 
@@ -204,6 +238,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.ota_status_label.setText("")
         self.btn_app_flash.setEnabled(False)
         self.btn_scan.setEnabled(False)
+        self.btn_all_channel_scan.setEnabled(False)
 
         self._ota_worker = OTAWorker(rpc, peer_addrs, firmware_path)
         self._ota_worker.progress_updated.connect(self.ota_progress.setValue)
@@ -216,6 +251,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def _on_ota_finished(self, result):
         self.btn_app_flash.setEnabled(True)
         self.btn_scan.setEnabled(True)
+        self.btn_all_channel_scan.setEnabled(True)
         self.ota_status_label.setText("")
         n_ok = len(result["successed"])
         n_fail = len(result["unfinished"])
@@ -226,6 +262,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def _on_ota_error(self, err_msg):
         self.btn_app_flash.setEnabled(True)
         self.btn_scan.setEnabled(True)
+        self.btn_all_channel_scan.setEnabled(True)
         self.ota_status_label.setText("")
         self.statusbar.showMessage(f"烧录错误: {err_msg}")
         self._ota_worker = None

@@ -17,13 +17,17 @@ class ScanWorker(QThread):
     scan_finished = Signal()
     scan_error = Signal(str)
 
-    def __init__(self, rpc: GatewaySerialRPC, parent=None):
+    def __init__(self, rpc: GatewaySerialRPC, channel, parent=None):
         super().__init__(parent)
         self.rpc = rpc
+        self.channel = channel
 
     def run(self):
         try:
-            self.rpc.write_message(RPCMessage(mtype=RPCMsgType.CMD_DEVICE_SCAN_REQ))
+            pb = ProtoBuffer()
+            pb.write_uint8(self.channel)
+
+            self.rpc.write_message(RPCMessage(mtype=RPCMsgType.CMD_DEVICE_SCAN_REQ, payload=pb.getvalue()))
             msg = self.rpc.read_message()
             if msg.mtype == RPCMsgType.CMD_DEVICE_SCAN_REP and msg.payload:
                 self._parse_scan_reply(msg.payload)

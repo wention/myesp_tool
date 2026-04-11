@@ -41,7 +41,7 @@ class Ui_MainWindow(object):
         self.btn_scan.setObjectName("btn_scan")
         self.horizontalLayout.addWidget(self.btn_scan)
         self.btn_all_channel_scan = QtWidgets.QPushButton(self.layoutWidget)
-        self.btn_all_channel_scan.setEnabled(False)
+        self.btn_all_channel_scan.setEnabled(True)
         self.btn_all_channel_scan.setObjectName("btn_all_channel_scan")
         self.horizontalLayout.addWidget(self.btn_all_channel_scan)
         self.verticalLayout.addLayout(self.horizontalLayout)

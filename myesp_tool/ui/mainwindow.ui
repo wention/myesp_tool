@@ -57,7 +57,7 @@
           <item>
            <widget class="QPushButton" name="btn_all_channel_scan">
             <property name="enabled">
-             <bool>false</bool>
+             <bool>true</bool>
             </property>
             <property name="text">
              <string>全频道扫描</string>
