@@ -368,21 +368,21 @@
              </property>
             </widget>
            </item>
-           <item row="4" column="0">
+           <item row="6" column="0">
             <widget class="QLabel" name="label_6">
              <property name="text">
               <string>雷达联动模式</string>
              </property>
             </widget>
            </item>
-           <item row="5" column="0">
+           <item row="7" column="0">
             <widget class="QLabel" name="label_7">
              <property name="text">
               <string>雷达联动数量</string>
              </property>
             </widget>
            </item>
-           <item row="5" column="1">
+           <item row="7" column="1">
             <widget class="QSpinBox" name="edit_radar_link_range">
              <property name="minimum">
               <number>-128</number>
@@ -395,7 +395,35 @@
              </property>
             </widget>
            </item>
+           <item row="4" column="0">
+            <widget class="QLabel" name="label_on_fade">
+             <property name="text">
+              <string>人来渐变时间(ms)</string>
+             </property>
+            </widget>
+           </item>
            <item row="4" column="1">
+            <widget class="QSpinBox" name="edit_led_on_fade">
+             <property name="maximum">
+              <number>65535</number>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="0">
+            <widget class="QLabel" name="label_off_fade">
+             <property name="text">
+              <string>人走渐变时间(ms)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="1">
+            <widget class="QSpinBox" name="edit_led_off_fade">
+             <property name="maximum">
+              <number>65535</number>
+             </property>
+            </widget>
+           </item>
+           <item row="6" column="1">
             <widget class="QComboBox" name="edit_radar_link_mode"/>
            </item>
            <item row="3" column="0">
@@ -412,14 +440,14 @@
              </property>
             </widget>
            </item>
-           <item row="6" column="0">
+           <item row="8" column="0">
             <widget class="QLabel" name="label_9">
              <property name="text">
               <string>网关</string>
              </property>
             </widget>
            </item>
-           <item row="6" column="1">
+           <item row="8" column="1">
             <widget class="QLineEdit" name="edit_gw_addr"/>
            </item>
           </layout>

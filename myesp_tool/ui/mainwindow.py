@@ -12,7 +12,7 @@ from ..rpc.rpc import GatewaySerialRPC, RPCMessage, PeerAddress, build_light_ctl
     build_config_get_msg, build_config_set_msg, build_device_reboot_msg
 from ..rpc.constants import RPCMsgType, TARGET_BROADCAST, TARGET_BY_SELECT, TARGET_GROUP, TARGET_USB, \
     TARGET_LIGHT_GROUP, TARGET_GW_GROUP, CONFIG_NS_MAX_SIZE, CONFIG_KEY_MAX_SIZE, ConfigValType, LightState, \
-    ESPNOW_CHANNEL_ALL, ESPNOW_CHANNEL_CURRENT
+    ESPNOW_CHANNEL_ALL, ESPNOW_CHANNEL_CURRENT, RadarLinkMode, RadarLinkModeOptions
 
 LightModeOptions = [
     ("灯暗(无人)", LightState.LIGHT_STATE_OFF),
@@ -50,13 +50,6 @@ DeviceTypeOptions = [
     ("全部", -1),
     ("灯具", 0),
     ("网关", 1),
-]
-
-RadarLinkModeOptions = [
-    ("X轴联动", 0),
-    ("Y轴联动", 1),
-    ("XY轴联动", 2),
-    ("信号联动", 3),
 ]
 
 
@@ -498,6 +491,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         _, _, _, val = parse_kv(msg, 0)
         self.edit_light_off_delay.setValue(val)
 
+        msg = build_config_get_msg(addrs, "led_on_fade")
+        self.gateway_rpc.write_message(msg)
+        msg = self.gateway_rpc.read_message()
+        _, _, _, val = parse_kv(msg, 0)
+        self.edit_led_on_fade.setValue(val)
+
+        msg = build_config_get_msg(addrs, "led_off_fade")
+        self.gateway_rpc.write_message(msg)
+        msg = self.gateway_rpc.read_message()
+        _, _, _, val = parse_kv(msg, 0)
+        self.edit_led_off_fade.setValue(val)
+
         msg = build_config_get_msg(addrs, "radar_lk_mode")
         self.gateway_rpc.write_message(msg)
         msg = self.gateway_rpc.read_message()
@@ -544,6 +549,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         light_on_duty = self.edit_light_on_duty.value()
         light_off_duty = self.edit_light_off_duty.value()
         light_off_delay = self.edit_light_off_delay.value()
+        led_on_fade = self.edit_led_on_fade.value()
+        led_off_fade = self.edit_led_off_fade.value()
         radar_link_mode = self.edit_radar_link_mode.currentData()
         radar_link_range = self.edit_radar_link_range.value()
 
@@ -570,6 +577,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
 
         msg = build_config_set_msg(addrs, "led_off_delay", ConfigValType.TYPE_U16, light_off_delay)
+        self.gateway_rpc.write_message(msg)
+        msg = self.gateway_rpc.read_message()
+
+        msg = build_config_set_msg(addrs, "led_on_fade", ConfigValType.TYPE_U16, led_on_fade)
+        self.gateway_rpc.write_message(msg)
+        msg = self.gateway_rpc.read_message()
+
+        msg = build_config_set_msg(addrs, "led_off_fade", ConfigValType.TYPE_U16, led_off_fade)
         self.gateway_rpc.write_message(msg)
         msg = self.gateway_rpc.read_message()
 
