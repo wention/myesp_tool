@@ -87,5 +87,35 @@ class LightState(IntEnum):
     LIGHT_STATE_BREATHE = auto()
     LIGHT_STATE_BLINK = auto()
 
+class RadarLinkMode(IntEnum):
+    # X轴双向联动
+    RADAR_LINK_MODE_X = auto()
+    # X轴正向联动
+    RADAR_LINK_MODE_X_P = auto()
+    # X轴反向联动
+    RADAR_LINK_MODE_X_N = auto()
+    # Y轴双向联动
+    RADAR_LINK_MODE_Y = auto()
+    # Y轴正向联动
+    RADAR_LINK_MODE_Y_P = auto()
+    # Y轴反向联动
+    RADAR_LINK_MODE_Y_N = auto()
+    # XY轴双向联动
+    RADAR_LINK_MODE_XY = auto()
+    # 信号联动
+    RADAR_LINK_MODE_SIGNAL = auto()
+
 ESPNOW_CHANNEL_CURRENT = 0
 ESPNOW_CHANNEL_ALL = 0x0f
+
+
+RadarLinkModeOptions = [
+    ("X轴双向联动", RadarLinkMode.RADAR_LINK_MODE_X),
+    ("X轴正向联动", RadarLinkMode.RADAR_LINK_MODE_X_P),
+    ("X轴反向联动", RadarLinkMode.RADAR_LINK_MODE_X_N),
+    ("Y轴双向联动", RadarLinkMode.RADAR_LINK_MODE_Y),
+    ("Y轴正向联动", RadarLinkMode.RADAR_LINK_MODE_Y_P),
+    ("Y轴反向联动", RadarLinkMode.RADAR_LINK_MODE_Y_N),
+    ("XY轴双向联动", RadarLinkMode.RADAR_LINK_MODE_XY),
+    ("信号联动", RadarLinkMode.RADAR_LINK_MODE_SIGNAL),
+]

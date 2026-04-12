@@ -1,8 +1,8 @@
 from PyQt5.QtCore import Qt, QAbstractTableModel, QModelIndex
 
-from ..rpc.constants import DeviceState
+from ..rpc.constants import DeviceState, RadarLinkModeOptions
 
-RADAR_LINK_MODES = {0: "X轴", 1: "Y轴", 2: "XY轴", 3: "信号"}
+RADAR_LINK_MODES = {v:k for k, v in RadarLinkModeOptions}
 from ..rpc.rpc import PeerAddress
 
 
