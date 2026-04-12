@@ -14,8 +14,8 @@ from ..rpc.constants import RPCMsgType, TARGET_BROADCAST, TARGET_BY_SELECT, TARG
     ESPNOW_CHANNEL_ALL, ESPNOW_CHANNEL_CURRENT
 
 LightModeOptions = [
-    ("灯暗", LightState.LIGHT_STATE_OFF),
-    ("灯亮", LightState.LIGHT_STATE_ON),
+    ("灯暗(无人)", LightState.LIGHT_STATE_OFF),
+    ("灯亮(有人)", LightState.LIGHT_STATE_ON),
     ("闪烁", LightState.LIGHT_STATE_BLINK),
     ("呼吸", LightState.LIGHT_STATE_BREATHE),
 ]
@@ -64,7 +64,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         super().__init__(parent)
         # UI
         self.setupUi(self)
-        self.groupBox.setVisible(False)
 
         self._serial_config = get_serial_config()
         self.gateway_rpc = None
