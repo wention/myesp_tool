@@ -5,6 +5,7 @@ from PyQt5.QtCore import pyqtSlot as Slot
 
 from .settingsdialog_ui import Ui_SettingsDialog
 from .appsettings import get_serial_config, set_serial_config
+from ..utils import log_exception
 
 BAUD_RATES = [9600, 19200, 38400, 57600, 115200, 230400, 460800, 921600]
 BYTESIZE_OPTIONS = [(str(v), v) for v in (5, 6, 7, 8)]
@@ -70,6 +71,7 @@ class SettingsDialog(QDialog, Ui_SettingsDialog):
         self.buttonBox.accepted.connect(self._save_and_accept)
 
     @Slot()
+    @log_exception
     def _refresh_ports(self):
         current = getattr(self, "_pending_port", None) or self.edit_port.currentText()
         self.edit_port.clear()
@@ -84,6 +86,7 @@ class SettingsDialog(QDialog, Ui_SettingsDialog):
             self.edit_port.setEditText(current)
 
     @Slot()
+    @log_exception
     def _save_and_accept(self):
         port = self.edit_port.currentData() or self.edit_port.currentText()
         if not port.strip():

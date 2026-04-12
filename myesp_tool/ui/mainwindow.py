@@ -6,6 +6,7 @@ from .devicemodel import DeviceTableModel
 from .workers import ScanWorker, OTAWorker
 from .appsettings import get_serial_config
 from .settingsdialog import SettingsDialog
+from ..utils import log_exception
 from ..rpc.protobuffer import ProtoBuffer
 from ..rpc.rpc import GatewaySerialRPC, RPCMessage, PeerAddress, build_light_ctl_msg, build_channel_set_msg, \
     build_config_get_msg, build_config_set_msg, build_device_reboot_msg
@@ -107,6 +108,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # 设备类型过滤
         self.edit_device_type_filter.currentIndexChanged.connect(self._on_device_type_filter_changed)
 
+    @log_exception
     def _on_device_type_filter_changed(self):
         type_filter = self.edit_device_type_filter.currentData()
         if type_filter == -1:
@@ -131,6 +133,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         return self.gateway_rpc
 
     @Slot()
+    @log_exception
     def on_btn_scan_clicked(self):
         """扫描按钮 — 扫描设备。"""
         if self._scan_worker is not None and self._scan_worker.isRunning():
@@ -158,6 +161,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._scan_worker.start()
 
     @Slot()
+    @log_exception
     def on_btn_all_channel_scan_clicked(self):
         """全频道扫描按钮 — 扫描设备。"""
         if self._scan_worker is not None and self._scan_worker.isRunning():
@@ -185,10 +189,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._scan_worker.start()
 
     @Slot(dict)
+    @log_exception
     def _on_device_found(self, device):
         self.device_model.add_device(device)
 
     @Slot()
+    @log_exception
     def _on_scan_finished(self):
         self.btn_scan.setEnabled(True)
         self.btn_all_channel_scan.setEnabled(True)
@@ -198,6 +204,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._scan_worker = None
 
     @Slot(str)
+    @log_exception
     def _on_scan_error(self, err_msg):
         self.btn_scan.setEnabled(True)
         self.btn_all_channel_scan.setEnabled(True)
@@ -207,6 +214,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._scan_worker = None
 
     @Slot()
+    @log_exception
     def on_btn_app_flash_clicked(self):
         """烧录按钮 — 开始 OTA 升级。"""
         if self._ota_worker is not None and self._ota_worker.isRunning():
@@ -247,6 +255,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._ota_worker.start()
 
     @Slot(dict)
+    @log_exception
     def _on_ota_finished(self, result):
         self.btn_app_flash.setEnabled(True)
         self.btn_scan.setEnabled(True)
@@ -258,6 +267,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._ota_worker = None
 
     @Slot(str)
+    @log_exception
     def _on_ota_error(self, err_msg):
         self.btn_app_flash.setEnabled(True)
         self.btn_scan.setEnabled(True)
@@ -267,6 +277,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._ota_worker = None
 
     @Slot(int, str, str)
+    @log_exception
     def _on_ota_progress_detail(self, pct, speed_text, eta_text):
         parts = []
         if speed_text:
@@ -276,6 +287,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.ota_status_label.setText("  |  ".join(parts))
 
     @Slot()
+    @log_exception
     def on_btn_light_on_clicked(self):
         """灯亮"""
         try:
@@ -294,6 +306,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.gateway_rpc.read_message()
 
     @Slot()
+    @log_exception
     def on_btn_light_off_clicked(self):
         """灯暗"""
         try:
@@ -312,6 +325,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.gateway_rpc.read_message()
 
     @Slot()
+    @log_exception
     def on_btn_light_blink_clicked(self):
         """灯闪烁"""
         try:
@@ -330,6 +344,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.gateway_rpc.read_message()
 
     @Slot()
+    @log_exception
     def on_btn_light_breathe_clicked(self):
         """灯呼吸"""
         try:
@@ -348,6 +363,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.gateway_rpc.read_message()
 
     @Slot()
+    @log_exception
     def on_btn_light_brightness_set_clicked(self):
         try:
             self._ensure_rpc()
@@ -367,6 +383,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         pass
 
     @Slot()
+    @log_exception
     def on_btn_light_mode_set_clicked(self):
         try:
             self._ensure_rpc()
@@ -384,6 +401,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.gateway_rpc.read_message()
 
     @Slot()
+    @log_exception
     def on_btn_channel_set_clicked(self):
         try:
             self._ensure_rpc()
@@ -398,6 +416,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.gateway_rpc.read_message()
 
     @Slot()
+    @log_exception
     def on_btn_config_read_clicked(self):
         try:
             self._ensure_rpc()
@@ -506,6 +525,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         pass
 
     @Slot()
+    @log_exception
     def on_btn_config_write_clicked(self):
         try:
             self._ensure_rpc()
@@ -581,6 +601,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.statusbar.repaint()
 
     @Slot()
+    @log_exception
     def on_btn_reboot_clicked(self):
         try:
             self._ensure_rpc()
@@ -621,12 +642,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         return []
 
     @Slot()
+    @log_exception
     def on_btn_select_file_clicked(self):
         filename, _ = QFileDialog.getOpenFileName(self, "选择固件文件")
         if filename:
             self.edit_upgrade_rom.setText(filename)
 
     @Slot()
+    @log_exception
     def _on_settings(self):
         dlg = SettingsDialog(self)
         if dlg.exec_() == SettingsDialog.Accepted:
