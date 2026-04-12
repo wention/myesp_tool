@@ -13,9 +13,7 @@ def setup_file_logging():
 
     必须在 QApplication 创建之后调用（QStandardPaths 依赖 QCoreApplication）。
     """
-    log_dir = QStandardPaths.writableLocation(QStandardPaths.AppLocalDataLocation)
-    os.makedirs(log_dir, exist_ok=True)
-    log_path = os.path.join(log_dir, "myesp_tool.log")
+    log_path = "myesp_tool.log"
 
     try:
         handler = RotatingFileHandler(
