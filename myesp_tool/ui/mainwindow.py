@@ -517,6 +517,24 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         _, _, _, val = parse_kv(msg, -65)
         self.edit_radar_link_range.setValue(val)
 
+        msg = build_config_get_msg(addrs, "radar_th")
+        self.gateway_rpc.write_message(msg)
+        msg = self.gateway_rpc.read_message()
+        _, _, _, val = parse_kv(msg, 0)
+        self.edit_radar_threshold.setValue(val)
+
+        msg = build_config_get_msg(addrs, "radar_lt_th")
+        self.gateway_rpc.write_message(msg)
+        msg = self.gateway_rpc.read_message()
+        _, _, _, val = parse_kv(msg, 0)
+        self.edit_radar_light_threshold.setValue(val)
+
+        msg = build_config_get_msg(addrs, "radar_delay")
+        self.gateway_rpc.write_message(msg)
+        msg = self.gateway_rpc.read_message()
+        _, _, _, val = parse_kv(msg, 0)
+        self.edit_radar_delay.setValue(val)
+
         msg = build_config_get_msg(addrs, "gateway_addr")
         self.gateway_rpc.write_message(msg)
         msg = self.gateway_rpc.read_message()
@@ -593,6 +611,22 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         msg = self.gateway_rpc.read_message()
 
         msg = build_config_set_msg(addrs, "radar_lk_range", ConfigValType.TYPE_I8, radar_link_range)
+        self.gateway_rpc.write_message(msg)
+        msg = self.gateway_rpc.read_message()
+
+        radar_th = self.edit_radar_threshold.value()
+        radar_lt_th = self.edit_radar_light_threshold.value()
+        radar_delay = self.edit_radar_delay.value()
+
+        msg = build_config_set_msg(addrs, "radar_th", ConfigValType.TYPE_U32, radar_th)
+        self.gateway_rpc.write_message(msg)
+        msg = self.gateway_rpc.read_message()
+
+        msg = build_config_set_msg(addrs, "radar_lt_th", ConfigValType.TYPE_U8, radar_lt_th)
+        self.gateway_rpc.write_message(msg)
+        msg = self.gateway_rpc.read_message()
+
+        msg = build_config_set_msg(addrs, "radar_delay", ConfigValType.TYPE_U16, radar_delay)
         self.gateway_rpc.write_message(msg)
         msg = self.gateway_rpc.read_message()
 
