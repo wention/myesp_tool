@@ -1,3 +1,6 @@
+import struct
+from io import BytesIO
+
 from PyQt5.QtCore import pyqtSlot as Slot, QSortFilterProxyModel
 from PyQt5.QtWidgets import QMainWindow, QFileDialog, QAbstractItemView
 
@@ -538,11 +541,26 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         msg = build_config_get_msg(addrs, "gateway_addr")
         self.gateway_rpc.write_message(msg)
         msg = self.gateway_rpc.read_message()
-        _, _, _, val = parse_kv(msg )
+        _, _, _, val = parse_kv(msg)
 
         if val is None:
             val = "ff:ff:ff:ff:ff:ff"
         self.edit_gw_addr.setText(str(PeerAddress(val)))
+
+        msg = build_config_get_msg(addrs, "radar_lk_items")
+        self.gateway_rpc.write_message(msg)
+        msg = self.gateway_rpc.read_message()
+        _, _, _, val = parse_kv(msg)
+
+        offset = 0
+        lines = []
+        while val and len(val) >= offset + 3:
+            g, x, y = struct.unpack_from("<BBB", val, offset)
+            lines.append(f"{x},{y}")
+
+            offset += 3
+
+        self.edit_radar_link_items.setPlainText("\n".join(lines))
 
         self.statusbar.showMessage(f"读取配置完成")
         pass
@@ -636,6 +654,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.updateStatusMessage("无效的网关地址")
             pass
         msg = build_config_set_msg(addrs, "gateway_addr", ConfigValType.TYPE_BLOB, gw_addr.peer_addr)
+        self.gateway_rpc.write_message(msg)
+        msg = self.gateway_rpc.read_message()
+
+
+        lines = self.edit_radar_link_items.toPlainText().splitlines()
+        buf = BytesIO()
+        for line in lines:
+            rx, ry = [int(v) for v in line.split(",")]
+            buf.write(struct.pack("<BBB", 0, rx, ry))
+
+        msg = build_config_set_msg(addrs, "radar_lk_items", ConfigValType.TYPE_BLOB, buf.getvalue())
         self.gateway_rpc.write_message(msg)
         msg = self.gateway_rpc.read_message()
 
