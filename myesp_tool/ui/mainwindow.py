@@ -1,4 +1,6 @@
+import logging
 import struct
+import time
 from io import BytesIO
 
 from PyQt5.QtCore import pyqtSlot as Slot, QSortFilterProxyModel
@@ -16,6 +18,8 @@ from ..rpc.rpc import GatewaySerialRPC, RPCMessage, PeerAddress, build_light_ctl
 from ..rpc.constants import RPCMsgType, TARGET_BROADCAST, TARGET_BY_SELECT, TARGET_GROUP, TARGET_USB, \
     TARGET_LIGHT_GROUP, TARGET_GW_GROUP, CONFIG_NS_MAX_SIZE, CONFIG_KEY_MAX_SIZE, ConfigValType, LightState, \
     ESPNOW_CHANNEL_ALL, ESPNOW_CHANNEL_CURRENT, RadarLinkMode, RadarLinkModeOptions
+
+LOG = logging.getLogger(__name__)
 
 LightModeOptions = [
     ("灯暗(无人)", LightState.LIGHT_STATE_OFF),
@@ -422,7 +426,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         def parse_kv(msg: RPCMessage, defaultValue=None):
             if msg.mtype == RPCMsgType.CMD_ERROR:
-                return defaultValue
+                return None, None, None, defaultValue
 
             pb = ProtoBuffer(msg.payload)
             ns = pb.read_fix_string(CONFIG_NS_MAX_SIZE, "utf-8")
@@ -658,15 +662,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         msg = self.gateway_rpc.read_message()
 
 
-        lines = self.edit_radar_link_items.toPlainText().splitlines()
-        buf = BytesIO()
-        for line in lines:
-            rx, ry = [int(v) for v in line.split(",")]
-            buf.write(struct.pack("<BBB", 0, rx, ry))
+        try:
+            lines = self.edit_radar_link_items.toPlainText().splitlines()
+            buf = BytesIO()
+            for line in lines:
+                rx, ry = [int(v) for v in line.split(",")]
+                buf.write(struct.pack("<BBB", 0, rx, ry))
 
-        msg = build_config_set_msg(addrs, "radar_lk_items", ConfigValType.TYPE_BLOB, buf.getvalue())
-        self.gateway_rpc.write_message(msg)
-        msg = self.gateway_rpc.read_message()
+            msg = build_config_set_msg(addrs, "radar_lk_items", ConfigValType.TYPE_BLOB, buf.getvalue())
+            self.gateway_rpc.write_message(msg)
+            msg = self.gateway_rpc.read_message()
+        except Exception as e:
+            LOG.exception(e)
+            self.updateStatusMessage("雷达直接联动输入错误: 无效的灯具地址")
+            return
 
         self.updateStatusMessage("配置写入完成")
 
